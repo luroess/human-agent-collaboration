@@ -1,0 +1,322 @@
+\documentclass[sigconf]{acmart}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+
+\setcopyright{acmlicensed}
+\copyrightyear{2025}
+\acmYear{2025}
+\acmDOI{XXXXXXX.XXXXXXX}
+
+\acmConference[HM Hauptseminar WiSe 2025/26]{Hauptseminar Visual Computing \& Machine Learning}{January 2026}{Munich, Germany}
+\acmISBN{978-1-4503-XXXX-X/2018/06}
+
+%% If you ever need author-year:
+%% \citestyle{acmauthoryear}
+
+\begin{document}
+
+\title[Context Windows vs Memory in RAG-Enabled Collaboration]{Is Context Window Size the Bottleneck? Sequencing, Retrieval, and Memory in RAG-Enabled Human--Agent Collaboration}
+
+\author{Lukas Röß}
+\affiliation{%
+  \institution{Munich University of Applied Sciences (HM)}
+  \city{Munich}
+  \state{Bavaria}
+  \country{Germany}}
+\email{lukas.roess@hm.edu}
+
+\renewcommand{\shortauthors}{Röß}
+
+%% CCS concepts
+\begin{CCSXML}
+<ccs2012>
+ <concept>
+  <concept_id>10010147.10010178.10010187</concept_id>
+  <concept_desc>Computing methodologies~Natural language processing</concept_desc>
+  <concept_significance>500</concept_significance>
+ </concept>
+ <concept>
+  <concept_id>10003120.10003121.10003126</concept_id>
+  <concept_desc>Human-centered computing~Collaborative and social computing</concept_desc>
+  <concept_significance>300</concept_significance>
+ </concept>
+ <concept>
+  <concept_id>10002951.10003227.10010925</concept_id>
+  <concept_desc>Information systems~Retrieval models and ranking</concept_desc>
+  <concept_significance>300</concept_significance>
+ </concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Computing methodologies~Natural language processing}
+\ccsdesc[300]{Human-centered computing~Collaborative and social computing}
+\ccsdesc[300]{Information systems~Retrieval models and ranking}
+
+\keywords{large language models, context window, retrieval-augmented generation, memory, sequencing, human--AI collaboration}
+
+\begin{abstract}
+Large language models (LLMs) are increasingly deployed as interactive agents that collaborate with humans on complex, multi-step tasks. A widespread assumption is that enlarging the context window of these models automatically improves collaboration, since more of the shared history and external documents can be processed at once. Recent work challenges this view. Studies comparing long-context models against retrieval-augmented generation (RAG) systems and explicit memory architectures show that performance gains from larger windows quickly saturate and can even degrade when prompts become overloaded with irrelevant information. Instead, the effectiveness of human--agent collaboration appears to depend more strongly on how context is sequenced, retrieved, summarized, and stored over time.
+
+This paper investigates the role of git 
+ext window size in the more realistic setting of a RAG-enabled LLM agent that collaborates with humans across multiple turns. We ask: \emph{How does the context window size of an LLM agent using RAG influence the effectiveness of human--agent collaboration, relative to sequencing and context management strategies?} Building on recent benchmarks for long-context reasoning, multi-document summarization, and conversational memory, we synthesize evidence that window size is necessary but not sufficient for robust collaboration. We then propose an experimental framework that factorizes three dimensions: raw context capacity, retrieval configuration, and memory/summary policies. The framework is designed to disentangle their contributions to collaborative outcomes such as task success, interaction efficiency, and context-related errors.
+
+The contribution of this work at the current stage is twofold: (1) a structured literature review that reframes ``context window size'' as one component of a broader \emph{effective context capacity}, and (2) a concrete study design for evaluating human--agent collaboration under different combinations of context length, RAG settings, and memory strategies.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+Large language models (LLMs) have rapidly evolved from static text generators to interactive agents that support humans in complex workflows such as document analysis, software engineering, research assistance, and customer support. In these settings, humans and agents typically collaborate iteratively rather than in a single prompt. Information is exchanged incrementally over many turns, new documents are introduced on demand, and shared context evolves over time. Designing systems that maintain coherent, helpful behaviour over such extended interactions is therefore a central challenge for human--agent collaboration.
+
+A natural technical lever is the \emph{context window size}, that is, the number of tokens an LLM can condition on at inference time. Context windows have grown from a few thousand tokens to hundreds of thousands or more in frontier models. This has led to the intuitive expectation that ``bigger is better'': a larger window should allow the agent to consider more conversational history and more external documents when responding, which should in turn improve collaboration. However, recent empirical work paints a more nuanced picture. Long-context models that ingest entire documents or large multi-document corpora often fail to extract all relevant information and can underperform retrieval-augmented setups that provide shorter but more focused contexts \citep{laban2024summhay,phan2024nepaquad}. Similarly, long conversational histories cause degradation in factual recall and coherence even when they fit into the nominal window \citep{maharana2024locomo}.
+
+In parallel, there has been fast progress on \emph{retrieval-augmented generation} (RAG) and explicit memory architectures. RAG systems pair an LLM with a retrieval component that selects relevant chunks from a larger external corpus, effectively giving the agent a virtual memory that greatly exceeds its context window while keeping prompts compact \citep{juvekar2024contextwindowutil,asai2023selfrag}. Memory-augmented agents go further by writing structured ``memory notes'', maintaining long-term knowledge graphs, or sharing memories among multiple agents and users \citep{xu2025amem,packer2023memgpt,edge2024graphrag,gutierrez2024hipporag,collabmemory2025}. This emerging literature suggests that \emph{how} context is organized, filtered, and remembered may matter more than sheer window size.
+
+This observation is particularly relevant for human--agent collaboration. In real use cases, humans interact with agents over many sessions, revisit projects, and expect the system to remember preferences and decisions. Enlarging the context window can delay when history must be dropped or summarized, but it does not by itself provide mechanisms for long-term memory, selective sharing in multi-user settings, or user-controllable corrections. Sequencing strategies and context management policies --- such as summarization, chunking, and iterative retrieval --- may therefore be more critical than raw context length in determining collaborative effectiveness.
+
+The present work focuses on this tension in the specific case of a RAG-enabled LLM agent. We revisit the central question of the seminar:
+
+\begin{quote}
+\textbf{Research question.} How does the context window size of an LLM agent using RAG influence the effectiveness of human--agent collaboration?
+\end{quote}
+
+Guided by feedback that window size alone might not capture the true bottleneck, we refine the scope to explicitly compare context length with sequencing and context management strategies. Concretely, the contributions of this paper draft are:
+\begin{itemize}
+  \item A synthesis of recent work on long-context LLMs, RAG systems, and memory architectures that reframes window size as one dimension of \emph{effective context capacity}.
+  \item A conceptual model that separates three levers for collaboration quality: (i) raw context window size, (ii) retrieval configuration (e.g., chunk size and top-$k$), and (iii) memory and summarization policies over multi-turn interactions.
+  \item A proposed experimental design for evaluating human--agent collaboration across controlled combinations of these levers, including candidate tasks, metrics, and hypotheses.
+\end{itemize}
+
+The remainder of the paper is structured as follows. Section~\ref{sec:background} provides background on LLM context windows, RAG, memory mechanisms, and human--agent collaboration metrics. Section~\ref{sec:related} reviews recent empirical studies comparing long-context models with RAG and memory-augmented agents. Section~\ref{sec:methods} outlines the planned methodology and experimental design. Section~\ref{sec:analysis-plan} sketches the analysis strategy. Section~\ref{sec:conclusion} concludes with expected implications and future work.
+
+\section{Background}
+\label{sec:background}
+This section introduces the core technical concepts used throughout the paper: context windows in LLMs, retrieval-augmented generation, sequencing and context management strategies, memory architectures for agents, and typical measures of human--agent collaboration.
+
+\subsection{Context windows in large language models}
+An LLM's \emph{context window} is the maximum number of tokens it can condition on when generating a response. This window includes both the user's input and any system or tool outputs that the model can see at inference time. Architecturally, the window arises from the positional encoding and attention mechanisms used in transformer models and their variants.
+
+Increasing the context window expands the model's \emph{working memory}. In principle, this allows the model to consider longer documents, multi-document inputs, or extended conversational histories in a single pass. However, attention weights are distributed over all tokens, and there is growing evidence that models struggle to maintain focus as the window grows. Empirical studies report phenomena such as:
+\begin{itemize}
+  \item \textbf{Attention diffusion:} When many tokens are present, attention becomes spread out, and relevant information competes with noise.
+  \item \textbf{Position bias:} Models may overweight tokens near the beginning or end of the prompt and underweight information in the middle of very long contexts.
+  \item \textbf{Computation cost:} Time and memory consumption increase roughly linearly with context length at inference time, which affects latency and deployment cost.
+\end{itemize}
+
+Benchmarks targeting long-context capabilities therefore often stress that ``can ingest'' is not equivalent to ``can effectively use'' the entire window \citep{laban2024summhay,maharana2024locomo}.
+
+\subsection{Retrieval-augmented generation}
+Retrieval-augmented generation (RAG) is a paradigm where an LLM is paired with a retrieval system that selects relevant information from an external knowledge source at query time. Typically, documents are segmented into chunks and indexed in a vector store. Given a user query and possibly a recent conversation history, a retriever returns the top-$k$ most relevant chunks, which are then inserted into the LLM's prompt.
+
+RAG changes how the context window is used. Instead of filling the window with a monolithic document or the entire dialogue history, the system aims to fill it with the most relevant snippets for the current question. This can dramatically increase the \emph{effective size} of the agent's knowledge, because the external corpus can be much larger than the context window. Recent work shows that, for knowledge-intensive tasks, RAG-augmented agents often outperform long-context models that see entire documents without retrieval \citep{phan2024nepaquad,laban2024summhay}.
+
+At the same time, RAG introduces new hyper-parameters and design decisions, for example:
+\begin{itemize}
+  \item chunk size and overlap for document segmentation,
+  \item top-$k$ and similarity thresholds for retrieval,
+  \item how much of the context window to allocate to retrieved chunks versus instructions and conversation,
+  \item whether retrieval is performed once or iteratively during generation.
+\end{itemize}
+Juvekar and Purwar propose \emph{Context Window Utilization} as a way to tune how much of the window should be filled with retrieved text, finding that using roughly half to two-thirds of the window yields better answer quality than saturating it \citep{juvekar2024contextwindowutil}.
+
+\subsection{Sequencing and context management}
+Sequencing strategies decide \emph{when} and \emph{in what order} information is provided to the LLM. Instead of giving the model a single mega-prompt with all relevant content, the system can organize the interaction as a sequence of smaller steps, such as:
+\begin{itemize}
+  \item planning the solution structure before filling in details,
+  \item solving sub-tasks in separate calls and then composing their results,
+  \item explicitly summarizing history after a topic is completed.
+\end{itemize}
+
+Context management policies determine \emph{what} to keep, compress, or discard over time. Typical mechanisms include:
+\begin{itemize}
+  \item \textbf{Summarization of past dialogue:} Older turns are periodically compressed into a shorter description that preserves key decisions, preferences, and constraints.
+  \item \textbf{Hierarchical memory:} Dialogue or documents are organized into a tree of summaries, where higher levels store coarser-grained information \citep{rezazadeh2024memtree}.
+  \item \textbf{Context filtering:} Before a new LLM call, the system picks or retrieves only the most relevant portions of past context, whether from dialogue history or external sources.
+\end{itemize}
+
+These strategies can be applied even when the raw context window is relatively small. Conversely, without such strategies, a large context window might be filled with redundant or irrelevant information, reducing its utility.
+
+\subsection{Memory architectures for LLM agents}
+Beyond transient context windows, several recent works introduce explicit memory architectures for LLM agents. The core idea is to provide the agent with a persistent store of information that can be read and written over time and across sessions, in contrast to ephemeral prompts.
+
+MemGPT models an ``OS-like'' memory manager that pages information into and out of the context window, treating the LLM as a CPU and external memory as storage \citep{packer2023memgpt}. A-MEM organizes agent memories as structured notes with tags, links, and evolving representations, inspired by knowledge management systems like Zettelkasten \citep{xu2025amem}. GraphRAG and related systems automatically construct knowledge graphs from text and use graph queries to retrieve semantically related context \citep{edge2024graphrag,gutierrez2024hipporag}.
+
+A separate line of work focuses on \emph{collaborative} or multi-user memory. Collaborative Memory proposes a two-tier memory with private and shared spaces, dynamic access control, and explicit provenance of facts \citep{collabmemory2025}. This is particularly relevant for real-world applications where different agents or human users contribute to a shared knowledge base but require isolation for sensitive information.
+
+\subsection{Human--agent collaboration metrics}
+Finally, we briefly summarize typical metrics for evaluating human--agent collaboration, which will guide the planned evaluation design:
+\begin{itemize}
+  \item \textbf{Task performance:} Accuracy, completeness, or quality of the final outputs produced by the human--agent team (e.g., correct answers, decision quality).
+  \item \textbf{Interaction efficiency:} Number of turns, tokens, or time required to complete tasks; redundancy or repeated information due to forgotten context.
+  \item \textbf{Context-related errors:} Contradictions with earlier statements, failure to respect prior constraints, or hallucinations caused by misusing context.
+  \item \textbf{User experience:} Subjective measures such as perceived helpfulness, trust, cognitive load, and satisfaction in user studies.
+\end{itemize}
+
+In the remainder, we use these dimensions to reason about when context window size acts as a bottleneck and when sequencing and memory strategies dominate.
+
+\section{Related Work}
+\label{sec:related}
+This section synthesizes recent empirical work on long-context LLMs, RAG systems, conversational memory, and collaborative memory architectures. The focus is on studies published from 2023 onward that are directly relevant to context windows and memory in human--agent collaboration.
+
+\subsection{Long-context models versus RAG}
+Several recent benchmarks directly compare long-context LLMs with RAG-based systems. Laban et al.\ introduce the \emph{SummHay} benchmark, which evaluates models on summarizing large ``haystacks'' of documents while correctly citing sources \citep{laban2024summhay}. They report that even frontier models with 100K+ token windows achieve less than 20\% coverage and citation accuracy when fed the full document set as a single context. In contrast, RAG setups that retrieve only relevant chunks reach around 45\% on the same metrics, still below human performance but significantly better than long-context-only baselines.
+
+Phan et al.\ present NEPAQuAD, a benchmark derived from US environmental review documents, to evaluate question answering over long, technical reports \citep{phan2024nepaquad}. Their results similarly show that RAG-augmented models outperform long-context models that ingest entire documents, regardless of which advanced LLM backbone is used. The authors attribute this to the difficulty models have in focusing on pertinent sections when presented with large, unstructured inputs.
+
+Juvekar and Purwar focus on the micro-level trade-offs within RAG by introducing \emph{Context Window Utilization} as a tunable hyper-parameter \citep{juvekar2024contextwindowutil}. They show that for open-source LLMs on QA tasks, there exists an optimal fraction of the context window that should be occupied by retrieved text (around 40--70\%), and that overfilling the window with many chunks degrades performance. This work strengthens the view that context quality and allocation matter more than raw length.
+
+Collectively, these studies suggest that for knowledge-intensive tasks, context window size alone is neither the main driver of performance nor a sufficient solution. RAG and context management strategies can compensate for relatively smaller windows and still outperform models with large windows but no retrieval.
+
+\subsection{Long-term conversational memory}
+Conversational settings highlight another dimension of context: temporal depth. Maharana et al.\ propose the LoCoMo benchmark to evaluate very long-term conversational memory of LLM agents \citep{maharana2024locomo}. LoCoMo consists of multi-session dialogues spanning hundreds of turns and thousands of tokens, with tasks that require recalling facts introduced many sessions earlier, summarizing events, and maintaining coherent personas over time.
+
+Their experiments show that standard LLMs struggle as dialogues extend, even when the entire history fits into the context window. Performance declines for questions that require long-range recall, and models often overlook temporally distant information. Extending the context window helps only partially; using retrieval over past dialogue segments improves results but still falls short of human-level performance. LoCoMo thus exposes structural limitations in how current models handle long-range temporal dependencies, independently of nominal context length.
+
+These findings motivate research into explicit memory architectures and summarization strategies that can complement context windows for long-term interactions.
+
+\subsection{Memory-augmented agents}
+Memory-augmented agents attempt to address long-term limitations by storing and organizing information outside the context window. MemGPT proposes an OS-inspired approach where the agent maintains a structured external memory and uses explicit APIs to swap information between long-term storage and the short-term context window \citep{packer2023memgpt}. This enables the agent to maintain a much larger effective memory while staying within the fixed context limit of the underlying LLM.
+
+Xu et al.\ introduce A-MEM, an ``agentic memory'' system that builds a network of structured memory notes, each annotated with descriptors, tags, and links to related content \citep{xu2025amem}. In evaluations on long-horizon reasoning and QA benchmarks (including LoCoMo-like setups), A-MEM significantly improves answer quality compared to flat memory baselines. Notably, they report large gains in ROUGE-L scores when switching from naive memory to A-MEM for a 15B parameter model. These results highlight the importance of organizing memory, not just storing it.
+
+Graph-based approaches like GraphRAG and HippoRAG further emphasize structure. GraphRAG constructs entity graphs from text and allows retrieval of subgraphs that reflect relationships among concepts \citep{edge2024graphrag}. HippoRAG focuses on continual graph construction while avoiding catastrophic forgetting, inspired by hippocampal consolidation in humans \citep{gutierrez2024hipporag}. Both lines of work show that structuring knowledge into graphs or linked notes can yield better retrieval and reasoning than raw document chunks.
+
+While these studies often focus on agent capabilities rather than explicit human--agent collaboration scenarios, their implications are clear: sophisticated memory mechanisms can dramatically extend an agent's effective context beyond what context window scaling alone provides.
+
+\subsection{Collaborative and shared memory}
+Finally, collaborative memory systems investigate how multiple users and agents can share context safely and efficiently. The Collaborative Memory framework proposes a two-tier memory with private and shared stores, dynamic access control, and full provenance tracking for each memory item \citep{collabmemory2025}. In multi-agent simulations, they show that enabling agents to read from a shared memory can reduce redundant work and API calls by more than 50\%, while improving task accuracy compared to isolated memory setups.
+
+From a human--agent collaboration perspective, shared memory can help new agents ``onboard'' into an ongoing project without replaying entire histories in the context window. It also supports scenarios where different specialist agents contribute evidence or partial solutions that a coordinator agent then integrates. At the same time, fine-grained access control and auditability are needed to preserve privacy and trust.
+
+Taken together, these findings support the hypothesis that in realistic collaborative scenarios, the main bottlenecks shift from raw context length to memory organization, access control, and interaction design.
+
+\section{Methods (Outline)}
+\label{sec:methods}
+This section provides an outline of the planned methodology rather than a full implementation. The goal is to design a study that can empirically disentangle the effects of context window size, RAG configuration, and memory/summary strategies on human--agent collaboration.
+
+\subsection{Experimental factors}
+\begin{itemize}
+  \item \textbf{Factor A: Context window size}
+    \begin{itemize}
+      \item Short window baseline (e.g., 8k tokens).
+      \item Medium window (e.g., 32k tokens).
+      \item Optional: very long window (e.g., 100k+) if available.
+    \end{itemize}
+  \item \textbf{Factor B: RAG configuration}
+    \begin{itemize}
+      \item No retrieval (long-context only).
+      \item Standard RAG with fixed chunk size and top-$k$.
+      \item Tuned RAG with optimal Context Window Utilization as suggested by \citet{juvekar2024contextwindowutil}.
+    \end{itemize}
+  \item \textbf{Factor C: Memory and summarization}
+    \begin{itemize}
+      \item No explicit memory (only sliding window).
+      \item Simple summarization of dialogue history (periodic updates).
+      \item Structured memory (A-MEM-inspired notes or hierarchical MemTree-style summaries \citep{xu2025amem,rezazadeh2024memtree}).
+    \end{itemize}
+\end{itemize}
+
+\subsection{Task design}
+\begin{itemize}
+  \item Knowledge-intensive collaborative tasks inspired by NEPAQuAD and SummHay:
+    \begin{itemize}
+      \item Multi-step analysis of a long technical document with intermediate decisions.
+      \item Multi-document synthesis with explicit citation requirements.
+    \end{itemize}
+  \item Long-horizon collaborative planning:
+    \begin{itemize}
+      \item Multi-session scenario (e.g., planning a research project or software feature) with decisions that must be remembered over time.
+    \end{itemize}
+  \item Option A: simulated users (scripted interaction patterns).
+  \item Option B: small-scale user study with students as participants.
+\end{itemize}
+
+\subsection{Collaborative protocol}
+\begin{itemize}
+  \item Standardized instructions and task descriptions for all conditions.
+  \item Fixed time budget or turn budget per task.
+  \item Logging of all interactions, retrieval calls, and memory read/write operations.
+\end{itemize}
+
+\subsection{Implementation setup}
+\begin{itemize}
+  \item Use a single LLM backbone with configurable context window options.
+  \item Implement RAG pipeline with adjustable chunk size, top-$k$, and context utilization.
+  \item Implement at least two memory modes:
+    \begin{itemize}
+      \item summary-only (simple text summaries),
+      \item structured notes with tags (minimal A-MEM-like prototype).
+    \end{itemize}
+\end{itemize}
+
+\section{Analysis Plan (Outline)}
+\label{sec:analysis-plan}
+\subsection{Quantitative metrics}
+\begin{itemize}
+  \item \textbf{Task performance}
+    \begin{itemize}
+      \item Accuracy / F1 on QA-style tasks.
+      \item Coverage and citation correctness on summarization tasks (as in SummHay \citep{laban2024summhay}).
+    \end{itemize}
+  \item \textbf{Interaction efficiency}
+    \begin{itemize}
+      \item Number of turns and total tokens exchanged.
+      \item Number of redundant clarifications due to forgotten context.
+    \end{itemize}
+  \item \textbf{Context-related error rate}
+    \begin{itemize}
+      \item Contradictions with earlier statements or decisions.
+      \item Violations of previously stated constraints.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Comparative analyses}
+\begin{itemize}
+  \item Main effects and interactions of Factors A, B, C on metrics.
+  \item Hypothesis tests:
+    \begin{itemize}
+      \item H1: For fixed RAG and memory configuration, increasing context window from short to medium improves collaboration metrics, but further increases yield diminishing returns.
+      \item H2: For fixed context window, tuned RAG and structured memory produce larger gains than increasing window size alone.
+      \item H3: Sequencing and summarization strategies reduce context-related errors more effectively than window scaling.
+    \end{itemize}
+  \item Ablation: compare RAG-only versus memory-only versus combined approaches.
+\end{itemize}
+
+\subsection{Qualitative analysis (if user study)}
+\begin{itemize}
+  \item Thematic analysis of user feedback on perceived helpfulness and trust.
+  \item Example failure cases where large windows still lead to misunderstandings.
+\end{itemize}
+
+\section{Conclusion and Future Work (Outline)}
+\label{sec:conclusion}
+\subsection{Conclusion (planned)}
+\begin{itemize}
+  \item Summarize evidence that:
+    \begin{itemize}
+      \item context window size is necessary but not sufficient,
+      \item RAG and memory architectures are critical for scaling beyond simple tasks,
+      \item sequencing and context management strongly influence human--agent collaboration quality.
+    \end{itemize}
+  \item Introduce the notion of \emph{effective context capacity} that combines window size, retrieval quality, and memory organization.
+  \item Position results relative to existing long-context and RAG benchmarks.
+\end{itemize}
+
+\subsection{Future work (planned)}
+\begin{itemize}
+  \item Extend evaluation to richer multi-agent and multi-user scenarios using collaborative memory \citep{collabmemory2025}.
+  \item Investigate adaptive sequencing policies, where the agent learns when to retrieve, summarize, or ask clarifying questions.
+  \item Explore user-facing controls for inspecting, editing, and deleting agent memories to increase transparency and trust.
+  \item Study safety and robustness issues, such as how to handle ``toxic'' or outdated memories in long-term collaboration.
+\end{itemize}
+
+\begin{acks}
+I would like to thank Prof.\ Dr.\ Hanna Moser and Prof.\ Dr.\ Gudrun Socher for their guidance in refining the research question. I used an AI assistant (ChatGPT, GPT-5.1~Thinking) to support language polishing, structuring of the outline, and drafting section text. All conceptual decisions, interpretation of the literature, and the final research design are my own.
+\end{acks}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{sources}
+
+\end{document}
