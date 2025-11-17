@@ -1,0 +1,40 @@
+# LaTeX build artifacts
+latex/*.aux
+latex/*.bbl
+latex/*.blg
+latex/*.fdb_latexmk
+latex/*.fls
+latex/*.log
+latex/*.out
+latex/*.synctex.gz
+latex/*.synctex.gz(busy)
+latex/*.toc
+latex/*.lof
+latex/*.lot
+latex/*.nav
+latex/*.snm
+latex/*.vrb
+latex/*.xdv
+latex/*.bcf
+latex/*.run.xml
+latex/_minted*
+latex/*.nav
+latex/*.snm
+latex/*.vrb
+
+# Backup and swap files
+*~
+*.swp
+*.swo
+.#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux / misc
+.Trash-*
+
+# VS Code
+.vscode/
