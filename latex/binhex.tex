@@ -1,0 +1,51 @@
+% Local binhex.tex to satisfy \input{binhex} used by newtxmath.
+% Public-domain style helper: defines \binhex{<integer>} -> hexadecimal.
+%
+% This is a minimal, standalone implementation; you should not need to edit it.
+
+\chardef\binhexA=10
+\chardef\binhexB=11
+\chardef\binhexC=12
+\chardef\binhexD=13
+\chardef\binhexE=14
+\chardef\binhexF=15
+
+\def\binhex#1{%
+  \begingroup
+  \count0=#1\relax
+  \ifnum\count0<0 %
+    \count0=-\count0
+    -%
+  \fi
+  \binhex@digits
+  \endgroup
+}
+
+\def\binhex@digits{%
+  \ifnum\count0>15
+    \count2=\count0
+    \divide\count2 by 16
+    \count1=\count2
+    \multiply\count1 by 16
+    \advance\count0 by -\count1
+    \count0=\count2
+    \expandafter\binhex@digits
+  \fi
+  \binhex@digit
+}
+
+\def\binhex@digit{%
+  \count2=\count0
+  \divide\count2 by 16
+  \count1=\count2
+  \multiply\count1 by 16
+  \advance\count0 by -\count1
+  \ifnum\count0<10
+    \the\count0
+  \else
+    \advance\count0 by -10
+    \ifcase\count0
+      A\or B\or C\or D\or E\or F%
+    \fi
+  \fi
+}
