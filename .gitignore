@@ -14,13 +14,7 @@ latex/*.lot
 latex/*.nav
 latex/*.snm
 latex/*.vrb
-latex/*.xdv
-latex/*.bcf
-latex/*.run.xml
-latex/_minted*
-latex/*.nav
-latex/*.snm
-latex/*.vrb
+latex/*.cut
 
 # Backup and swap files
 *~
