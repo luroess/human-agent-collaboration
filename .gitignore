@@ -15,6 +15,7 @@ latex/*.nav
 latex/*.snm
 latex/*.vrb
 latex/*.cut
+latex/paper.pdf
 
 # Backup and swap files
 *~
