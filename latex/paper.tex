@@ -1,7 +1,7 @@
 \documentclass[sigconf]{acmart}
 
 \AtBeginDocument{%
-  \providecommand\BibTeX{{Bib\TeX}}}
+  \providecommand\BibTeX{{\BibTeX}}}
 
 %% Minimal rights info for course work (adjust if your lecturer gave you specific text)
 \setcopyright{none}
@@ -9,7 +9,7 @@
 \acmYear{2025}
 %% \acmDOI{10.0000/placeholder-doi}
 
-\acmConference[HM Seminar 2025]{HM Seminar on Human–AI Collaboration}{Winter Term 2025}{Munich, Germany}
+\acmConference[Seminar Human–Agent Collaboration]{Main Seminar on Human–Agent Collaboration}{Winter Term 2025}{Munich, Germany}
 %% \acmISBN{000-0-0000-0000-0/25/00}
 
 %% Classification (can be refined if needed)
@@ -37,9 +37,9 @@
 \ccsdesc[300]{Computing methodologies~Natural language processing}
 \ccsdesc[300]{Information systems~Information retrieval}
 
-\keywords{large language models, human–AI collaboration, context windows, retrieval augmented generation, summarization, memory}
+\keywords{large language models, human–agent collaboration, context windows, retrieval augmented generation, summarization, memory}
 
-\title{Context Handling Mechanisms in Human Agent Collaboration: Sequencing, Retrieval, Summarization and Context Window Size}
+\title[Context Handling Mechanisms in Human Agent Collaboration]{Context Handling Mechanisms in Human Agent Collaboration: Sequencing, Retrieval, Summarization and Context Window Size}
 
 \author{Lukas Röß}
 \affiliation{%
@@ -59,7 +59,7 @@ Research explores several mechanisms to manage context, including multi agent se
 
 This paper synthesizes recent work from 2024 and 2025 on long context processing, memory architectures and human–agent collaboration. It reviews multi agent sequencing approaches such as Chain of Agents, Graph of Agents and XpandA, which divide long inputs across agents and recombine their outputs. It contrasts these methods with empirical comparisons of retrieval augmented generation and long context models in industrial and clinical applications. It also integrates work on memory structures, summarization strategies and studies of human teams supported by AI summarizers.
 
-Based on this synthesis, the paper proposes a framework that links four context handling mechanisms, namely sequencing, retrieval, summarization and context window size, to three dimensions of collaboration effectiveness: task performance, interaction quality and longitudinal alignment. It refines the research question for the seminar project to: How do different mechanisms of context handling, such as sequencing, retrieval, summarization and context window size, influence the effectiveness of human–agent collaboration? The paper closes with an outline of the research design that will guide the next project phase.
+Based on this synthesis, the paper proposes a framework that links four context handling mechanisms, namely sequencing, retrieval, summarization and context window size, to three dimensions of collaboration effectiveness: task performance, interaction quality and long-term consistency. It refines the research question for the seminar project to: How do different mechanisms of context handling, such as sequencing, retrieval, summarization and context window size, jointly influence the effectiveness of human–agent collaboration?
 \end{abstract}
 
 \maketitle
@@ -76,12 +76,12 @@ Beyond capacity, memory mechanisms and summarization strategies play a key role.
 
 Studies of human teams with AI support complement these technical perspectives. An experiment with virtual collaborative analysis compares two AI summarizers. Summary style affects trust and attention patterns even when problem solving accuracy remains similar \cite{kane2025virtual}. Another study of student interactions with LLMs on complex tasks finds that interaction patterns often reduce to instruct–serve–repeat cycles with long threads that reveal misalignment between human intent and model output \cite{saqr2025humancollab}.
 
-These results indicate that context handling concerns more than the size of the context window. Sequencing, retrieval, summarization and memory design interact with human trust, attention and perceived agency. Yet most work evaluates these mechanisms separately or with a narrow focus on model performance. Integrated accounts of how context handling mechanisms shape human–agent collaboration remain scarce.
+These results indicate that context handling concerns more than the size of the context window. Sequencing, retrieval, summarization and memory design interact with human trust, attention and perceived agency. Yet most work evaluates these mechanisms separately or with a narrow focus on model performance. Integrated accounts of how context handling mechanisms jointly shape human–agent collaboration remain scarce.
 
 This project addresses this gap through the following research question.
 
 \medskip
-\textbf{Research question.} How do different mechanisms of context handling, such as sequencing, retrieval, summarization and context window size, influence the effectiveness of human–agent collaboration?
+\textbf{Research question.} \emph{How do different mechanisms of context handling, such as sequencing, retrieval, summarization and context window size, jointly influence the effectiveness of human–agent collaboration?}
 
 \medskip
 The paper contributes to the seminar project in three ways. First, it summarizes recent work on long context processing, memory and collaboration into a structured view of context handling mechanisms. Second, it relates these mechanisms to dimensions of collaboration effectiveness that are relevant for human–agent teaming. Third, it outlines a research design that will guide the empirical phase of the project in the next milestone.
@@ -102,7 +102,7 @@ These findings motivate a closer focus on context handling mechanisms in LLM age
 
 From a technical view, LLMs handle context through four main strategies relevant to this project. The first is extended context windows that allow more tokens as direct input. The second is retrieval augmented generation, which retrieves documents or conversation snippets from external stores and injects them into a smaller window. The third is summarization, which compresses prior content into shorter representations. The fourth is explicit memory architectures that preserve information beyond a single prompt–response cycle.
 
-A survey on memory mechanisms for LLM based agents distinguishes short term rolling context, episodic and semantic memory in vector stores, parametric memory via fine tuning and hybrid memory controllers. It emphasizes that memory systems must decide what to store, when to update and how to retrieve information for different tasks and collaboration patterns \cite{zhang2025memorysurvey}. This view supports the idea that sequencing, retrieval and summarization form components of a broader memory system.
+A survey on memory mechanisms for LLM based agents distinguishes short term rolling context, episodic memory in vector stores, semantic memory graphs, parametric memory via fine tuning and hybrid memory controllers. It emphasizes that memory systems must decide what to store, when to update and how to retrieve information for different tasks and collaboration patterns \cite{zhang2025memorysurvey}. This view supports the idea that sequencing, retrieval and summarization form components of a broader memory system.
 
 Work on contextual memory intelligence extends this notion and treats memory as a system level capability for generative AI. It proposes a layered architecture with an insight layer that captures decisions, rationales and environmental signals over time. The design includes human review and drift detection and aims to support coherent collaboration in organizational settings \cite{wedel2025cmi}. This work connects memory design to social and institutional contexts instead of narrow benchmarks.
 
@@ -116,12 +116,12 @@ This project focuses on four context handling mechanisms that recur across the l
 Sequencing structures processing as a sequence of steps, often across several agents with specific roles. Chain of Agents introduces worker agents that process segments of a long input and a manager agent that synthesizes their outputs. This design exploits long documents while giving each agent a short local window \cite{zhang2024chainofagents}. Graph of Agents formalizes long context processing as a compression problem and builds dynamic graphs in which agents iteratively exchange and refine information under an information theoretic objective \cite{joo2025graphofagents}. XpandA uses a question driven workflow and shared memory. It partitions ultra long texts and lets agents update a central ensemble of information, which supports processing of sequences up to one million tokens \cite{xiao2025xpanda}.
 
 \textbf{Retrieval.}
-Retrieval augmented generation fetches relevant documents, conversation segments or exemplars from external stores and passes them to the model within a limited window. The EMNLP industry study benchmarks retrieval augmented generation and long context models on several datasets. It finds that long context models reach higher average performance when model and hardware resources allow, while retrieval remains more cost efficient. A hybrid routing method that directs queries either to retrieval augmented pipelines or to long context inference achieves near long context performance at reduced cost \cite{li2024ragvslc}. The medical question answering study combines retrieval with long context representations and reduces the typical performance loss for information in the middle of long sequences, which improves answer quality \cite{zhang2025leveraging}.
+Retrieval augmented generation fetches relevant documents, conversation segments or exemplars from external stores and passes them to the model within a limited window. The EMNLP industry study benchmarks retrieval augmented generation and long context models on several datasets. It finds that long context models reach higher average performance when model and hardware resources allow, while retrieval remains more cost efficient. A hybrid routing method that directs queries either to retrieval augmented pipelines or to long context inference achieves near long context performance at reduced cost \cite{li2024ragvslc}. The medical question answering study combines retrieval with long context representations and reduces the typical performance loss for information in the middle of long sequences, which improves answer quality \cite{zhang2025leveraging}. This result shows that context window size and retrieval can act as complementary mechanisms.
 
 \textbf{Summarization.}
 Summarization compresses content so that systems can store and share more information under context limits. In multi agent systems, summarization shapes both internal state and communication between agents. Chain of Agents relies on the manager agent to summarize worker outputs into a final answer \cite{zhang2024chainofagents}. Graph of Agents uses compression objectives to guide how agents summarize and pass information along edges \cite{joo2025graphofagents}. XpandA maintains summarized ensembles of information in a central memory and replays partitions when needed \cite{xiao2025xpanda}. In human teams, AI summarizers control which information humans see and when, and thus influence attention and trust \cite{kane2025virtual}.
 
-	extbf{Context window size.}
+\textbf{Context window size.}
 Context window size determines how many tokens a model can process in one pass. Extended windows allow direct conditioning on long histories but do not ensure effective use of earlier content. Studies on long context models show that performance gains depend on task structure and input distribution. The EMNLP industry study reports that long context models outperform retrieval augmented generation when resources are sufficient and that hybrid routing is needed under cost constraints \cite{li2024ragvslc}. The medical study shows that long context retrieval pipelines can leverage extended windows to improve clinical question answering \cite{zhang2025leveraging}. Multi agent approaches such as Graph of Agents show how collaboration architectures can surpass much larger windows by distributing processing across small local windows \cite{joo2025graphofagents}.
 
 These four mechanisms form the conceptual basis for the analysis and research design in the remainder of the project.
@@ -177,36 +177,111 @@ This dimension concerns coherence and alignment over extended periods. Memory su
 
 The refined research question asks how different combinations of the four mechanisms affect these three dimensions of effectiveness in human–agent collaboration scenarios.
 
-\section{Research design outline}
+\section{Methods}
 
-This section outlines the planned empirical work for Milestone 3.
+This section details the planned empirical study. The goal is to operationalize the conceptual framework and to test how different context handling mechanisms jointly affect collaboration effectiveness. Implementation of the experimental infrastructure has started in the form of prototype agent variants and task scripts.
 
 \subsection{Study design}
 
-The planned study will compare four conditions that correspond to different context handling mechanisms in a controlled human–agent collaboration task, such as collaborative document analysis or scenario planning.
+The study follows a between subjects design with four experimental conditions that correspond to different context handling strategies in a controlled human–agent collaboration task.
+
+Participants work together with an LLM based agent on a multi step document analysis and synthesis task. Each participant is randomly assigned to one of four agent variants.
+
+\subsection{Experimental conditions}
+
+\begin{enumerate}
+  \item \textbf{Long context only.} A single long context LLM agent operates with an extended context window and no external retrieval or explicit long term memory. The full task corpus and dialogue history are provided directly in the prompt up to the context limit.
+  \item \textbf{Retrieval augmented generation (RAG).} A smaller context LLM agent uses retrieval from a vector store that contains the task corpus and selected interaction history. For each turn, the system retrieves top-\emph{k} passages based on dense similarity and injects them into the prompt.
+  \item \textbf{Summarization focused agent.} An agent maintains a structured summary of the collaboration so far (key findings, decisions, open questions). Before each major step, it presents a concise summary panel to the participant and uses this summary as part of its own context instead of the full history.
+  \item \textbf{Sequenced multi agent system.} A simplified Chain of Agents style pipeline in which two worker agents process different parts of the corpus and a coordinator agent synthesizes their outputs. The coordinator maintains a shared memory of intermediate conclusions and uses short local windows for each call.
+\end{enumerate}
+
+All conditions use the same base model family to avoid confounding architecture with context handling. Differences lie in how context is assembled and reused.
+
+\subsection{Task}
+
+The planned task is a collaborative analysis and recommendation scenario:
 
 \begin{itemize}
-  \item \textbf{Long context only.} A single long context LLM agent operates with an extended context window and no external retrieval or explicit memory.
-  \item \textbf{Retrieval augmented generation.} A smaller context LLM agent uses retrieval from a document store and conversation history to answer questions and co author content.
-  \item \textbf{Summarization focused agent.} An agent summarizes prior context into short notes and exposes these summaries to the human partner, inspired by findings on AI summarizers in team settings \cite{kane2025virtual}.
-  \item \textbf{Sequenced multi agent system.} A simplified Chain of Agents or XpandA inspired pipeline in which several agents read different parts of the input and a coordinator agent synthesizes their contributions, supported by a shared memory component \cite{zhang2024chainofagents,xiao2025xpanda}.
+  \item Participants receive a dossier of news articles.
+  \item Together with the agent, they must identify key issues, cluster related information and draft a summary for a hypothetical stakeholder.
+  \item The task is divided into phases: exploration, synthesis and final recommendation. Each phase involves several chat turns.
 \end{itemize}
 
-Participants will work with one of these systems on a multi step task that requires integration of information from several documents and adaptation to evolving instructions.
+This structure forces the agent to reuse information over time and to refer back to earlier decisions, which stresses context handling.
+
+\subsection{Participants and procedure}
+
+\begin{itemize}
+  \item Target sample: 4-8 participants (preferable more), randomly assigned to conditions.
+  \item Each session lasts approximately 30 minutes including instructions and questionnaires.
+  \item Procedure:
+    \begin{enumerate}
+      \item Pre task briefing and informed consent.
+      \item Short tutorial on the chat interface and the role of the agent.
+      \item Collaborative task with one assigned agent variant.
+      \item Post task questionnaire on trust, workload and perceived collaboration quality.
+      \item Optional short interview for qualitative feedback.
+    \end{enumerate}
+\end{itemize}
 
 \subsection{Measures}
 
-To align with the framework, the study will collect measures for the three dimensions of effectiveness.
+To align with the conceptual framework, the study collects measures for the three dimensions of collaboration effectiveness.
 
+\paragraph{Task performance.}
 \begin{itemize}
-  \item \textbf{Task performance.} Objective metrics such as answer accuracy, coverage of relevant information, time to completion and number of interaction turns, based on long context benchmark practice \cite{zhang2024chainofagents,joo2025graphofagents,li2024ragvslc}.
-  \item \textbf{Interaction quality.} Self report scales for trust in the agent, perceived understanding and workload, and behavioural measures such as distribution of attention across sources and interaction types. The AI summarizer study and the instruct–serve–repeat analysis inform these measures \cite{kane2025virtual,saqr2025humancollab}.
-  \item \textbf{Longitudinal alignment.} Measures of consistency across task phases, such as whether the agent maintains prior decisions and rationales, inspired by contextual memory frameworks \cite{zhang2025memorysurvey,wedel2025cmi}.
+  \item \textbf{Accuracy and coverage:} Expert rating of final recommendations on correctness and coverage of relevant information, using a rubric with several items.
+  \item \textbf{Efficiency:} Time to completion and number of turns required to reach the final recommendation.
+  \item \textbf{Redundancy:} Share of turns that repeat previously established information or correct earlier misunderstandings.
 \end{itemize}
 
-\subsection{Analysis plan}
+\paragraph{Interaction quality.}
+\begin{itemize}
+  \item \textbf{Trust in the agent:} Adapted items from trust in automation scales (e.g., perceived reliability and helpfulness).
+  \item \textbf{Perceived understanding:} Self report items on how well the agent understood the task and prior context.
+  \item \textbf{Usability:} System Usability Scale (SUS) to assess the overall usability of the agent.
+  \item \textbf{Behavioural indicators:} Sequence based features such as number of clarification questions asked by the human, frequency of user initiated corrections and presence of instruct–serve–repeat patterns \cite{saqr2025humancollab}.
+\end{itemize}
 
-The analysis will compare conditions along the three dimensions using suitable statistical methods, such as mixed effects models for repeated measures. It will also examine interaction patterns qualitatively and through sequence analysis to detect collaboration modes similar to those described in prior work \cite{saqr2025humancollab}. The framework will guide interpretation of how combinations of sequencing, retrieval, summarization and context window size shape human–agent collaboration.
+\paragraph{Long-term consistency.}
+\begin{itemize}
+  \item \textbf{Consistency:} Expert coding of whether the agent contradicts its own earlier statements or decisions across phases.
+  \item \textbf{Memory use:} Qualitative coding of instances where the agent correctly or incorrectly reuses earlier context (e.g., referring back to a previous finding).
+  \item \textbf{Rationale preservation:} Whether reasons given in earlier phases remain visible and coherent in the final recommendation, inspired by contextual memory intelligence principles \cite{wedel2025cmi}.
+\end{itemize}
+
+\section{Analysis Plan}
+
+The analysis will examine how the four context handling strategies affect the three dimensions of collaboration effectiveness and will test the refined research question.
+
+\subsection{Quantitative analysis}
+
+The evaluation follows a between-subjects design where each participant uses only one agent. Comparisons are conducted between groups to identify which context strategy enables the best collaboration.
+
+The analysis considers the following metrics per participant:
+\begin{itemize}
+  \item \textbf{Objective metrics:} Solution quality, time required, and number of steps.
+  \item \textbf{Subjective metrics:} Trust, understandability, and perceived support.
+  \item \textbf{Interaction metrics:} Number of clarification questions, corrections, and conversation history.
+\end{itemize}
+
+Statistical methods will be applied to detect differences between groups. The expectation is that no single mechanism dominates across all metrics. Sequenced and summarization focused agents may trade small performance differences for better interaction quality, while long context only may excel in accuracy but suffer from higher workload or inconsistency.
+
+\subsection{Sequence and pattern analysis}
+
+\begin{itemize}
+  \item Represent each conversation as a sequence of interaction types (instruction, clarification, correction, summarization, exploration).
+  \item Use sequence analysis or Markov chain modelling to compare prevalent interaction patterns across conditions, following approaches used in previous work on human–LLM interaction \cite{saqr2025humancollab}.
+  \item Identify whether some context handling strategies lead to more collaborative patterns (e.g., more clarification, fewer correction loops) than others.
+\end{itemize}
+
+\subsection{Qualitative analysis}
+
+\begin{itemize}
+  \item Conduct a thematic analysis of a subset of conversations and post task comments to understand subjective experiences and failure modes that metrics do not capture.
+  \item Pay particular attention to episodes where context handling fails (e.g., the agent forgets a key constraint) and how humans react in different conditions.
+\end{itemize}
 
 \section{Conclusion and outlook}
 
@@ -216,7 +291,7 @@ The review suggests that effective collaboration depends on how systems structur
 
 Building on this synthesis, the paper formulates a research question that targets the joint influence of sequencing, retrieval, summarization and context window size on the effectiveness of human–agent collaboration. It proposes a conceptual framework and outlines a comparative study that will operationalize this question through controlled experiments.
 
-The next project phase will refine the experimental design, implement the agent variants and pilot the measures. The final goal is to provide guidance on how to combine context handling mechanisms in LLM based systems so that they function as collaborative partners rather than as obedient yet misaligned assistants.
+The next project phase will refine the experimental design, implement all four agent variants in a unified platform and conduct a pilot study. The final goal is to provide guidance on how to combine context handling mechanisms in LLM based systems so that they function as collaborative partners rather than as obedient yet misaligned assistants.
 
 \begin{acks}
 I thank Prof.\ Dr.\ Hanna Moser and Prof.\ Dr.\ Gudrun Socher for their guidance in refining the research question. I used an AI assistant (ChatGPT, GPT-5.1~Thinking) only for language polishing. All conceptual decisions, interpretation of the literature and the final research design are my own.
