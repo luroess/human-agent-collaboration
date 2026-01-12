@@ -1,0 +1,30 @@
+[model]
+model_id = "Qwen/Qwen3-4B"
+load_in_4bit = true
+
+[run]
+output = "runs/output.jsonl"
+seed = 42
+cache_dir = "hf_cache"
+
+[[benchmarks]]
+name = "synthetic"
+limit = 10
+
+[[benchmarks]]
+name = "synthetic_long_qa"
+limit = 5
+
+[[benchmarks]]
+name = "synthetic_long_summary"
+limit = 5
+
+[[benchmarks]]
+name = "synthetic_retrieval"
+limit = 5
+
+[eval]
+output = "runs/metrics.json"
+
+[viz]
+output_dir = "viz"
