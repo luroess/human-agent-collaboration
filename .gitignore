@@ -17,11 +17,16 @@ latex/*.vrb
 latex/*.cut
 latex/paper.pdf
 
+# LaTeX presentations
+latex-presentation/
+
 # Backup and swap files
 *~
 *.swp
 *.swo
 .#*
+__pycache__/
+*.pyc
 
 # macOS
 .DS_Store
@@ -33,3 +38,12 @@ latex/paper.pdf
 
 # VS Code
 .vscode/
+
+# Model/cache artifacts
+hf_cache/
+
+# Local run outputs
+runs/
+
+# Python build metadata
+paper_human_agent_collab.egg-info/
